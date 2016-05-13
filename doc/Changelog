@@ -1,0 +1,196 @@
+$Log: Changelog,v $
+Revision 1.2  2004/05/06 19:27:14  urchlay
+
+Removed README.TXT from repository (it's not a source file).
+
+
+-- Pre-CVS changes:
+
+20040502 bkw:
+
+Added new config.mak variable: C_CORE. All the commented-out asm
+code that had been ported to C code in c_core.c is now conditional
+on the symbol C_CORE, as is c_core.c itself. This means we can
+keep building the original x86 asm version of the emulator core
+for releases, but continue to port stuff to C.
+
+Moved some of the stray files into their own directories: the batch
+files in bat/, the font files in fonts/, most of the documentation
+in doc/.
+
+From now on, I'm not including binaries in the source snapshots I make,
+nor the SDL.DLL (it's several times larger than the entire rest of
+the source archive). Actually, on my win98 test system, it's perfectly
+OK to keep SDL.DLL in C:\WINDOWS\SYSTEM32 and not in the directory
+you're running Z26.EXE from.
+
+Got doc/z26.pdf being built from a modified local copy of pod2pdf
+instead of using man and ps2pdf. Our versions of pod2pdf and pod2text
+now live in the perl/ dir in our source tree, so we won't have to
+rely on everyone having the correct versions installed.
+
+New build system correctly builds binary & docs on Linux and Windows.
+
+20040429 and 30 bkw:
+
+snapshot
+
+cli.c now checks -T option for validity. You can only pick timing
+modes that are compiled in (you can't even use -T on Windows).
+
+Added DEBUG_AUDIO_SPEC compile time option, which defaults to off.
+If you enable it, you'll see the requested and actual audio formats.
+
+Completely reworked build system.
+All the platform-specific stuff is kept in config_*.mak files. For
+an actual build, the appropriate config_*.mak is copied to config.mak
+and included by the main Makefile.
+
+The first time you run `make',
+there's no config.mak, so you're told to enter `make linux', `make windows',
+etc... the next time you run `make', it uses the existing config.mak,
+so you don't have to tell it what platform to build for.
+
+You can change targets at any time: if you did `make linux', you can
+run `make linux-static' and it'll set things up & build. You may
+want to run `make clean' before doing this, though.
+
+config.h is gone: everything goes in the variable Z26OPTS in the config.mak
+files (there's one for each target: config_windows.mak, config_linux.mak,
+etc. etc.)
+
+There's an undocumented `make es' target for Eckhard's custom setup
+(with SDL headers in standard include path and no `sdl-config' script).
+Well, it's not undocumented now, is it? :)
+Eckhard, try this, it should do exactly what mm.bat does.
+
+README.TXT now has DOS-style CR/LF on either platform. `make README.TXT'
+to create. You will need `pod2text' in your PATH. I used the standard
+one from the Perl 5.8.1 distribution; the modified version that comes
+with ActiveState Perl doesn't work from an Msys prompt (and `make'
+doesn't work from a DOS prompt for me, either). Eckhard, let me know
+if you have trouble with this. use `make README.TXT'...
+
+There are `make freebsd' (tested by me) and `make beos' (untested)
+targets. James, let me know if the beos target works.
+
+I am playing with using QueryPerformanceCounter() as an optional
+timing mode on Windows, but am nowhere near working code yet, so
+none of that is in this snap. Apparently, time runs *backwards* on
+the Windows box I tried this on (no, not really, but MinGW's printf()
+doesn't work properly with LARGE_INTEGER, even though it should).
+
+Bumped Z26_VERSION to 2.13-pre4.
+
+20040427 bkw:
+
+Tweaked -T4 once more: now we get 59.80fps for NTSC, 49.95 PAL. This
+is as close as it's going to get, due to the 1/8192 second resolution
+of the timer (which is a hardware timer, so we can't just change it
+and recompile the kernel!). -T4 is always slightly off, but it's only
+by .003% for NTSC and .0001% for PAL, and it's rock-solid, doesn't
+eat a lot of CPU, and not sensitive to heavy system loads.
+
+I did some stress testing: ran 3 copies of `lame -b 48 - </dev/urandom
+>/dev/urandom' in the background, then did a `while true; do make
+clean; make -j2 bzImage; done' loop. This drove the load on my
+poor laptop up to 7 (it's an Athlon 1200, not too slow, not too
+fast by today's standards either).
+
+With a load average of 7 I started Pitfall II in a window:
+
+-T1 - 61-66 fps, jitter is annoying.
+-T2 - 59-61 fps, jitters a lot, but it isn't too noticeable in gameplay
+-T3 - 10 fps (!). The kernel just wouldn't let us have enough CPU
+      for our tight polling loop.
+-T4 - 59.54 - 59.80 fps. Very little jitter, was at 59.80 95% of the time.
+
+So -T4 is useful for playing games while you wait for your mp3 encoding,
+DVD ripping, kernel compiles, etc. to finish.
+
+
+Made -T2 the default on BeOS.
+
+Fixed auto-framerate with -T2/3/4 modes. Got rid of target_fps
+(which was always either 50 or 60, based solely on palette).
+
+Made CurrentFPS a float and print it to 2 decimal places.
+
+Got rid of auto-adjust (tickadj) in -T2 mode (it never worked right anyway).
+
+Got rid of extra call to SDL_Flip(srv_screen) in -T2/3/4 modes. This
+should fix John's issue with Yar's not drawing the castle (once he
+pointed it out to me, I could see it too).
+
+Merged James' BeOS change for sdlsrv.c (select() proto is in net/socket.h
+on Be, instead of sys/select.h). Instead of also putting an #ifdef in
+config.h, I've made chkconfig.h check that __linux__ is defined
+if LINUX_RTC_TIMING is also defined. That way we don't also have to
+have #ifdef's for FreeBSD, NetBSD, etc.
+
+
+20040424/25 bkw:
+
+Disabled -r with no parameter and -R options on non-Windows.
+
+snapshot
+
+Converted old README.TXT to POD format (z26.pod). Added Linux notes
+to it.
+
+Merged Eckhard's sound-locking changes. These fix Windows long startup
+times, and have no effect on my Linux boxes (but may fix James's
+problems with his SMP Linux box).
+
+Added z26.h with ANSI prototypes. We now compile with -Wall, and
+there are currently no warnings.
+
+20040422 bkw:
+
+Added dumb spin-cycle timing option. It wastes a lot of CPU, but it's
+pretty accurate.
+
+Reorganized timing options in config.h and sdlsrv.c so we can have
+all the timing modes built into 1 binary. Added -T option to choose
+which one to use at runtime.
+
+Split z26core.asm back into its component files.
+c_core.c is now included by z26.c, like all the other C source files.
+moved extern declarations from various .asm files into extern.asm,
+	where they belong.
+
+20040421 bkw:
+
+Added man page and `make install' target. Added z26.pdf target for
+a nice-looking version of the manual. Also added `make realclean',
+which removes the generated docs, too.
+
+snap: http://www.hardcoders.org/z26/z26_linux_work-20040421.tar.gz
+
+I fixed the static build again. This tarball is 2.4M because there are
+3 static binaries in the bin/ directory. To make your own static binary,
+you should be able to just say `make static'.
+
+usleep() has been replaced by select(), which should be a little nicer
+(thanks James).
+
+The following functions from z26core.asm have been ported to C:
+
+InitData()
+Init_Service()
+TIAGraphicMode()
+Init_SoundQ()
+RandomizeRIOTTimer()
+
+Also some variables from z26core.asm have been moved to C, including the
+2 tables of font data (simplex and tiny5).
+
+I'd much appreciate it if someone better at x86 asm than I am would have
+a look at the functions in c_core.c and the original .asm versions and
+make sure I didn't mis-read what the x86 code is doing.
+
+
+20040420 bkw:
+
+Started porting a few functions and declarations from asm to C.
+See c_core.c for details.

@@ -1,0 +1,30 @@
+
+This applies only to non-Windows versions.
+-T4 only exists on Linux.
+
+
+You can now select which timing routine to use at runtime with
+the -T option.
+
+-T1  - SDL_Delay() timing. Inaccurate on Linux 2.6, highly
+       inaccurate on Linux 2.4. Should work on any platform.
+
+-T2  - UNIX select() timing. Not that accurate, may be dropped in
+       future. Really only works on Linux 2.6. Should work on any UNIX
+		 platform.
+
+-T3  - CPU hog timing. Very accurate, very expensive. This is what
+       Stella uses for its timing, basically. Works on any Linux
+		 kernel. Should work on any UNIX platform.
+
+-T4  - Linux RTC timing. Most accurate, doesn't eat much CPU, requires
+       root to run `echo 8192 > /proc/sys/dev/rtc/max-user-freq'
+		 before running the emulator. Works on either Linux 2.4 or 2.6,
+		 but 2.4 kernels prior to 2.4.19 are missing the /proc file,
+		 so you'd have to run z26 as root (NOT RECOMMENDED!)
+
+The static binary in bin/ has all of the above compiled in. Please
+test the various modes and let me know what sort of results you get.
+
+--
+B.

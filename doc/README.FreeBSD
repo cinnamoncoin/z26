@@ -1,0 +1,11 @@
+
+z26 compiles and runs natively on FreeBSD 4.9. You'll need gmake, nasm,
+sdl12, and sdl_ldbad from ports/devel. You specifically can't use
+the native BSD make. Use `gmake freebsd' to build.
+
+At some point I'd like to test FreeBSD 5.2.1, and also try to get
+RTC timing to work (via ports/emulators/rtc).
+
+Once we make a stable release of the nasm version of z26, I'd like
+to get it into FreeBSD's ports (possibly also Net and OpenBSD).
+

@@ -1,0 +1,6 @@
+
+You should be able to build a BeOS binary with `make beos'.
+
+If the sound is inaudible or sounds weird, use -S.
+
+

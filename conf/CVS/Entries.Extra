@@ -1,0 +1,10 @@
+/c_core.mak////
+/config_beos.mak////
+/config_custom.mak////
+/config_es.mak////
+/config_freebsd.mak////
+/config_generic-unix.mak////
+/config_linux-static.mak////
+/config_linux.mak////
+/config_netbsd.mak////
+/config_windows.mak////

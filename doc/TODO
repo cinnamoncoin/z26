@@ -1,0 +1,95 @@
+
+I've marked `critical' issues with a *. These are things (in my
+opinion) that need to be done before we make a public release.
+
+Possibly rework RTC timing as a patch against SDL and submit to
+libsdl.org. If this happens, we can ditch -T4 and the LINUX_RTC_TIMING
+define.
+
+Test on *really* slow boxes (Pentium 120 anyone?) - partly done. Using
+SVGAlib backend for SDL, we get 40fps from Pitfall with sound and
+56fps without (-q). I have yet to get the Windows version to run
+(missing MSVCRT.DLL. Huh?)
+
+* Test on different Linux distros. At minimum everything should work
+out-of-the-box on Slackware, Debian, Mandrake, and Redhat/Fedora.
+John is testing on RH, James and Rob (Kudla) on Mandrake.
+I only run Slackware, but I've at least tested with multiple
+GCC versions: 2.95.3, 3.2, 3.3.3, and 3.4.0 all work now. Also
+whatever comes with Slackware 7.1 (2.91.66 IIRC).
+
+Test FreeBSD with real hardware. May be able to use RTC timing.
+
+Test NetBSD with real hardware, see if the sound works. It doesn't in
+vmware, but then NetBSD isn't officially supposed to run in vmware at all.
+
+Test OpenBSD with real hardware, see if it still segfaults. This also
+could be a vmware issue, but I suspect it isn't. More likely we're
+running afoul of some of the buffer-overflow protection that OBSD turns
+on by default. This could mean a real bug in our program, or it could
+mean OBSD is just really picky.
+
+Find out why Eckhard reports the RTC version runs at 56-57 fps in
+modes 0, 3 and 6 (the 400 and 800 pixel wide modes). He's using Knoppix;
+I suspect Knoppix is using the VESA fbdev driver for X11, which means
+this may be a non-issue (vesafb is just slow, can't be helped).
+
+Decide if sync-to-sound is worth trying to salvage on Linux. I think
+it's probably pointless, but it does work nicely on Windows.
+
+Great Variable Migration: tiatab.asm is all data, no code, should
+be easy to move over to C. Also the vars in pitfall2.asm
+
+-------
+Resolved issues:
+
+See if we can make select() based timing more accurate. At least we
+should fail gracefully on a slow CPU, even one capable of running
+at 60fps with the RTC code. UPDATE - This is less of an issue now
+that we have -T3 (cpu hog) timing. - DONE: got rid of tickadj hack,
+tweaked constants some, now we get about 61fps NTSC and 50 PAL,
+not bad. Also, James reports -T2 is accurate on Be.
+
+See if we can make the Makefile also work on Msys/MinGW/Windows. - DONE
+
+Minor nitpick: Most games take the first few frames to sync up. This
+screws the average FPS up, which we print before we exit. - DONE, we
+just don't count the first 20 frames in our FPS calc.
+
+James is working on a BeOS patch. - DONE
+
+* Add auto-framerate-detection to -T3 and -T4. Currently the code
+is hard-wired to use 50Hz with the PAL/SECAM palettes and 60Hz with
+the NTSC palette (why is this wrong, BTW, assuming the emulator can
+tell which palette to use?) - DONE, pending testing by someone
+other than me.
+
+* Perhaps make -T3 the default on non-Windows platforms? It's very
+accurate, and doesn't require any special setup. I don't like running
+my CPU that hard all the time, but it doesn't actually hurt anything
+(Stella uses the same style of timing, and nobody ever complained about
+it, either). Overclockers or people with poorly-designed cooling systems
+may run into trouble. - DONE
+
+* James reported the emulator hangs on startup on his SMP Mandrake 9.2
+box, but not if he boots the single-CPU kernel. See if this is a general
+SMP issue or something specific to Mandrake. - UPDATE: This may be
+fixed by Eckhard's audio-locking patch. - DONE: yep, Eckhard fixed it.
+
+
+Longer range plans:
+-------
+
+Port asm code to C. Started on, but just barely. See conf/c_core.mak
+
+Debugger. I want to make the emulator listen on a TCP socket and use
+an SMTP-like protocol, so that anyone who wants to can write a debugging
+client that suits their needs (I like CLI, you like ncurses, he likes GUI).
+
+In-game GUI. Will require:
+
+- Convert TIA code to render into a 320x200 buffer
+- Better text-rendering engine (current code is unwieldy to use)
+- GUI widgets (file-selector, checkboxes, input boxes, etc). Can
+  be pretty simple-looking (like MAME's GUI)
+

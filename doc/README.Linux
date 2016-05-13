@@ -1,0 +1,5 @@
+
+Any reasonably recent Linux distribution should have all you need
+to build z26. `make linux' to build (or `make linux-static' if you
+want a statically linked binary).
+
